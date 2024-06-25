@@ -111,6 +111,7 @@ class PdfBlock(XBlock):
         }
         self.runtime.publish(self, event_type, event_data)
         frag = Fragment(html)
+        frag.add_javascript_url('https://mozilla.github.io/pdf.js/build/pdf.mjs')
         frag.add_javascript(self.load_resource("static/js/pdf_view.js"))
         frag.initialize_js('pdfXBlockInitView')
         return frag
