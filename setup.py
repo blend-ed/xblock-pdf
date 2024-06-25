@@ -21,7 +21,7 @@ def package_data(pkg, roots):
 
 setup(
     name='xblock-pdf',
-    version='1.1.1',
+    version='1.1.3',
     description='Course component (Open edX XBlock) that provides an easy way to embed a PDF',
     packages=[
         'pdf',
