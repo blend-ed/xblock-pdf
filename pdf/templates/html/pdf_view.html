@@ -1,21 +1,57 @@
 {% load i18n %}
 <div class="pdf_block">
   <h2>{{ display_name }}</h2>
-  <object data="{{ url }}" type="application/pdf" width="100%" height="600">
-    <p>
-      {% trans "It appears you don't have a PDF plugin for this browser." %}
-    </p>
-  </object>
+
+  <!-- Canvas to render the PDF -->
+  <canvas id="pdf-render" width="100%" height="600"></canvas>
+  
+  <p id="pdf-loading-message">
+    Loading PDF...
+  </p>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.0.279/pdf.min.js"></script>
+  <script>
+    const url = '{{ url }}';
+    const canvas = document.getElementById('pdf-render');
+    const context = canvas.getContext('2d');
+    
+    // PDF.js setup
+    const loadingMessage = document.getElementById('pdf-loading-message');
+    
+    const loadingTask = pdfjsLib.getDocument(url);
+    loadingTask.promise.then(function(pdf) {
+      // Fetch the first page
+      return pdf.getPage(1).then(function(page) {
+        const viewport = page.getViewport({ scale: 1.5 });
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        
+        // Render the PDF page into the canvas context
+        const renderContext = {
+          canvasContext: context,
+          viewport: viewport
+        };
+        return page.render(renderContext).promise;
+      });
+    }).then(function() {
+      // Hide the loading message when rendering is complete
+      loadingMessage.style.display = 'none';
+    }).catch(function(error) {
+      console.error('Error loading PDF:', error);
+      loadingMessage.textContent = "Error loading PDF";
+    });
+  </script>
+  
   {% if not disable_all_download %}
   <ul>
     {% if allow_download %}
     <li class="pdf-download-button">
-      <a href="{{ url }}" download>{% trans "Download the PDF" %}</a>
+      <a href="{{ url }}" download>Download the PDF</a>
     </li>
     {% endif %}
     {% if source_url != "" %}
     <li class="pdf-download-button">
-      <a href="{{ source_url }}" download>{% if source_text == "" %}{% trans "Download the source document" %}{% else %}{{ source_text }}{% endif %}</a>
+      <a href="{{ source_url }}" download>{% if source_text == "" %}Download the source document{% else %}{{ source_text }}{% endif %}</a>
     </li>
     {% endif %}
   </ul>
